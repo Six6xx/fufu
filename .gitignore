@@ -1,0 +1,24 @@
+# Local Python environment and generated files
+.venv/
+**/__pycache__/
+*.py[cod]
+.DS_Store
+
+# Local secrets and user runtime state
+.env
+code_demo/ai_configuration/.memory/
+code_demo/ai_configuration/.episodic/
+code_demo/ai_configuration/.sessions/
+code_demo/ai_configuration/.team/
+code_demo/ai_configuration/.tasks/
+code_demo/ai_configuration/.transcripts/
+code_demo/ai_configuration/.task_outputs/
+code_demo/ai_configuration/.uploads/
+code_demo/ai_configuration/.worktrees/
+code_demo/ai_configuration/.cognitive_state/
+code_demo/ai_configuration/companion_profile.json
+code_demo/mcp_config.json
+
+# Generated code graph caches
+**/graphify-out/cache/
+**/graphify-out/stat-index.json

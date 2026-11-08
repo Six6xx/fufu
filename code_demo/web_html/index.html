@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>芙芙</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><circle cx=%2232%22 cy=%2232%22 r=%2230%22 fill=%22%234A90D9%22 stroke=%22%232E6DB4%22 stroke-width=%222%22/><ellipse cx=%2232%22 cy=%2228%22 rx=%2212%22 ry=%2213%22 fill=%22%23FDE8D0%22/><path d=%22M20 24c0-8 5-16 12-16s12 8 12 16%22 fill=%22%234A6FA5%22/><circle cx=%2226%22 cy=%2227%22 r=%222%22 fill=%22%232C3E50%22/><circle cx=%2238%22 cy=%2227%22 r=%222%22 fill=%22%232C3E50%22/><path d=%22M28 33c2 2 6 2 8 0%22 stroke=%22%23E74C3C%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/></svg>">
+    <link rel="stylesheet" href="/static/css/01-base.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/02-layout.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/03-chat.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/04-input.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/05-mcp.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/06-settings.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/07-files.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/08-modals.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/09-responsive.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/10-task-progress.css?v=20261107b">
+    <link rel="stylesheet" href="/static/css/11-live2d.css?v=20261107b">
+
+    <!-- Live2D 依赖 -->
+    <script src="https://cdn.jsdelivr.net/npm/oh-my-live2d@latest/dist/index.min.js"></script>
+</head>
+<body>
+    <!-- Live2D Canvas 背景层 -->
+    <canvas id="live2d-canvas"></canvas>
+
+    <div id="app-wrapper">
+        <!-- 侧边栏：会话列表 -->
+        <aside class="sidebar collapsed" id="sidebar" style="display:none">
+            <div class="sidebar-header">
+                <h2>会话列表</h2>
+            </div>
+            <button class="new-session-btn" id="newSessionBtn">+ 新建会话</button>
+            <div class="session-list" id="sessionList"></div>
+            <div class="sidebar-footer">
+                <button class="settings-btn" id="settingsBtn" title="设置">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- 主面板 -->
+        <div id="app">
+        <!-- 顶部标题栏 -->
+        <header class="header">
+            <div class="header-left">
+                <button class="hamburger-btn" id="hamburgerBtn" title="设置">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <line x1="3" y1="12" x2="21" y2="12"/>
+                        <line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                </button>
+                <div class="avatar-header">
+                    <svg class="avatar-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="32" cy="32" r="30" fill="#4A90D9" stroke="#2E6DB4" stroke-width="2"/>
+                        <ellipse cx="32" cy="28" rx="12" ry="13" fill="#FDE8D0"/>
+                        <path d="M20 24c0-8 5-16 12-16s12 8 12 16" fill="#4A6FA5"/>
+                        <circle cx="26" cy="27" r="2" fill="#2C3E50"/>
+                        <circle cx="38" cy="27" r="2" fill="#2C3E50"/>
+                        <path d="M28 33c2 2 6 2 8 0" stroke="#E74C3C" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        <path d="M14 20c2-4 6-6 10-4" stroke="#4A6FA5" stroke-width="2" fill="none"/>
+                        <path d="M50 20c-2-4-6-6-10-4" stroke="#4A6FA5" stroke-width="2" fill="none"/>
+                    </svg>
+                    <h1>芙芙</h1>
+                </div>
+            </div>
+            <div class="header-center">
+                <span class="session-name" id="sessionName" title="点击编辑会话名称">新会话</span>
+            </div>
+            <div class="header-right">
+                <!-- AI 思维外显开关 -->
+                <div class="externalize-toggle" id="externalize-toggle" title="开启后可窥探 AI 内心独白">
+                    <span class="toggle-icon">🧠</span>
+                    <span class="toggle-label">AI思维</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="externalize-checkbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <!-- 思考模式开关：开启后显示模型的推理过程（可折叠） -->
+                <label class="thinking-toggle">
+                    <span class="thinking-toggle-label">思考模式</span>
+                    <input type="checkbox" id="thinkingToggle">
+                    <span class="thinking-toggle-slider"></span>
+                </label>
+                <!-- 连接状态指示器 -->
+                <div class="status-indicator" id="connectionStatus">
+                    <span class="status-dot disconnected"></span>
+                    <span class="status-text">未连接</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 消息列表 -->
+        <main class="messages empty" id="messages">
+            <div class="welcome-message">
+                <p>你好，我是芙芙。</p>
+                <p>你可以输入文字与我对话，也可以点击麦克风图标用语音交流。</p>
+                <p>点击右侧的头像图标可以开启语音合成（TTS）。</p>
+                <div style="margin-top:20px;padding-top:16px;border-top:1px solid #21262d;">
+                    <p style="color:#8b949e;font-size:13px;margin-bottom:8px;">🎮 小游戏</p>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <a href="deduction.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#1f6feb;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;">🧩 推理大师</a>
+                        <a href="ai_snake.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#238636;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;">🤖 AI贪吃蛇</a>
+                        <a href="game.html" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#21262d;color:#c9d1d9;border-radius:8px;text-decoration:none;font-size:13px;border:1px solid #30363d;">🐍 贪吃蛇</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 工作目录栏 -->
+        <div class="workspace-bar" id="workspaceBar">
+            <button class="workspace-browse-btn" id="workspaceBrowseBtn" title="浏览目录">
+                <svg viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+            </button>
+            <input type="text" class="workspace-input" id="workspaceInput"
+                   placeholder="工作目录路径..." spellcheck="false" />
+            <button class="workspace-btn" id="workspaceApplyBtn" title="应用">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                </svg>
+            </button>
+            <button class="workspace-btn" id="workspaceResetBtn" title="重置为默认">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- 底部输入区域 -->
+        <footer class="input-area">
+            <!-- ASR 实时识别弹窗 -->
+            <div class="asr-popup" id="asrPopup">
+                <div class="asr-popup-header">
+                    <span class="asr-dot"></span>
+                    <span class="asr-popup-title">ASR 已开启，正在实时转换</span>
+                    <button class="asr-popup-close" id="asrPopupClose" title="关闭 ASR">&times;</button>
+                </div>
+                <div class="asr-popup-text" id="asrLiveText">等待语音输入...</div>
+                <div class="asr-actions">
+                    <button class="asr-btn asr-edit-btn" id="asrEditBtn" title="编辑识别结果">编辑</button>
+                    <button class="asr-btn asr-cancel-btn" id="asrCancelBtn" title="取消并放弃识别结果">取消</button>
+                    <button class="asr-btn asr-send-btn" id="asrSendBtn" title="发送识别结果给 Agent">发送</button>
+                </div>
+            </div>
+
+            <!-- 待上传文件列表 -->
+            <div class="pending-files" id="pendingFiles"></div>
+
+            <div class="input-row">
+                <!-- 文本输入框与统一工具栏 -->
+                <div class="input-wrapper">
+                    <textarea
+                        id="textInput"
+                        placeholder="输入消息..."
+                        rows="1"
+                        maxlength="2000"
+                    ></textarea>
+                    <div class="bottom-bar" id="bottomBar">
+                        <div class="input-buttons">
+                            <button class="icon-btn mic-btn" id="micBtn" title="开启/关闭语音识别" aria-label="语音识别">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                                <span class="btn-indicator" id="asrIndicator"></span>
+                            </button>
+                            <button class="icon-btn avatar-btn" id="ttsBtn" title="开启/关闭语音合成" aria-label="语音合成">
+                                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="28" fill="#4A90D9" stroke="#2E6DB4" stroke-width="2"/><ellipse cx="32" cy="28" rx="11" ry="12" fill="#FDE8D0"/><path d="M21 24c0-7 5-14 11-14s11 7 11 14" fill="#4A6FA5"/><circle cx="27" cy="27" r="1.8" fill="#2C3E50"/><circle cx="37" cy="27" r="1.8" fill="#2C3E50"/><path d="M29 32c1.5 1.5 5 1.5 6.5 0" stroke="#E74C3C" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>
+                                <span class="btn-indicator" id="ttsIndicator"></span>
+                            </button>
+                            <button class="icon-btn mcp-btn" id="mcpBtn" title="MCP 工具管理" aria-label="MCP 工具管理">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                                <span class="btn-indicator" id="mcpIndicator"></span>
+                            </button>
+                        </div>
+                        <div class="model-bar" id="modelBar">
+                            <button class="model-bar-btn" id="modelBarBtn" title="切换模型">
+                                <span class="model-bar-provider" id="modelBarProvider"></span>
+                                <span class="model-bar-name" id="modelBarName">--</span>
+                                <svg class="model-bar-arrow" id="modelBarArrow" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </button>
+                            <div class="model-dropdown" id="modelDropdown">
+                                <!-- JS 动态填充模型列表 -->
+                            </div>
+                        </div>
+                        <div class="perm-mode-bar" id="permModeBar">
+                            <button class="perm-mode-btn" id="permModeBtn" title="权限模式">
+                                <span id="permissionModeLabel">auto</span>
+                                <svg class="perm-mode-arrow" id="permModeArrow" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="6 9 12 15 18 9"/>
+                                </svg>
+                            </button>
+                            <div class="perm-mode-dropdown" id="permModeDropdown">
+                                <div class="perm-mode-item active" data-mode="auto">Auto</div>
+                                <div class="perm-mode-item" data-mode="default">Default</div>
+                                <div class="perm-mode-item" data-mode="plan">Plan</div>
+                            </div>
+                        </div>
+                        <button class="upload-btn" id="uploadBtn" title="上传文件" aria-label="上传文件">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            <span class="upload-tooltip" id="uploadTooltip">上传文件</span>
+                        </button>
+                        <input type="file" id="fileInput" multiple style="display:none" />
+                    </div>
+                </div>
+
+                <!-- 发送按钮 -->
+                <button class="send-btn" id="sendBtn" title="发送消息">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- MCP 弹出面板（向上展开） -->
+            <div class="mcp-popup" id="mcpPopup">
+                <div class="mcp-popup-header">
+                    <span>MCP 服务器</span>
+                    <span class="mcp-popup-count" id="mcpCount">0/0</span>
+                </div>
+                <div class="mcp-popup-list" id="mcpList">
+                    <!-- JS 动态填充 -->
+                </div>
+            </div>
+
+            <!-- 状态栏 -->
+            <div class="status-bar" id="statusBar"></div>
+        </footer>
+
+        <!-- 设置页面（覆盖 #app 区域） -->
+        <div class="settings-overlay" id="settingsOverlay">
+            <div class="settings-page">
+                <div class="settings-header">
+                    <h2>设置</h2>
+                    <button class="settings-close" id="settingsClose">&times;</button>
+                </div>
+                <div class="settings-body">
+                    <nav class="settings-nav" id="settingsNav">
+                        <button class="settings-nav-item active" data-category="general">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            <span>基础设置</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="mcp">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                            <span>MCP</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="skills">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                            <span>Skills</span>
+                        </button>
+                        <button class="settings-nav-item" data-category="providers">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                            <span>模型供应商</span>
+                        </button>
+                    </nav>
+                    <div class="settings-content-wrap">
+                        <!-- 管理Skills按钮（右上角，仅 Skills 分类下显示） -->
+                        <div class="manage-skills-bar" id="manageSkillsBar" style="display:none">
+                            <button class="manage-skills-btn" id="manageSkillsBtn">管理Skills</button>
+                        </div>
+                        <div class="settings-content" id="settingsContent">
+                            <!-- JS 动态渲染 MCP 或 Skills 网格 -->
+                        </div>
+                        <!-- 批量操作栏（左下角批量删除/下线 + 右下角取消/确认） -->
+                        <div class="batch-bar" id="batchBar" style="display:none">
+                            <div class="batch-left">
+                                <button class="batch-action-btn batch-delete-btn" id="batchDeleteBtn" disabled>批量删除</button>
+                                <button class="batch-action-btn batch-retire-btn" id="batchRetireBtn" style="display:none" disabled>下线</button>
+                            </div>
+                            <div class="batch-right" id="batchRight" style="display:none">
+                                <button class="batch-action-btn cancel" id="batchCancelBtn">取消</button>
+                                <button class="batch-action-btn confirm disabled" id="batchConfirmBtn" disabled>确认</button>
+                            </div>
+                        </div>
+                        <!-- Skills 右下角固定按钮 -->
+                        <div class="skill-action-btns" style="display:none" id="skillActionBtns">
+                            <button class="add-skill-btn import" id="importSkillBtn" title="导入 Markdown 文件">Markdown 导入</button>
+                            <button class="add-skill-btn" id="addSkillBtn" title="添加 Skills">+ 添加 Skills</button>
+                        </div>
+                        <!-- MCP 右下角新增按钮 -->
+                        <div class="skill-action-btns" style="display:none" id="mcpActionBtns">
+                            <button class="add-skill-btn" id="addMcpFromSettingsBtn" title="新增 MCP 服务器">+ 新增 MCP 服务</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <!-- end #app -->
+
+    <!-- MCP 新增模态窗口 -->
+    <div class="mcp-modal-overlay" id="mcpModal">
+        <div class="mcp-modal">
+            <div class="mcp-modal-header">
+                <h3>新增 MCP 服务</h3>
+                <button class="mcp-modal-close" id="mcpModalClose">&times;</button>
+            </div>
+            <div class="mcp-modal-tabs">
+                <button class="mcp-tab active" data-tab="manual">手动创建</button>
+                <button class="mcp-tab" data-tab="json">JSON 导入</button>
+            </div>
+            <div class="mcp-modal-body">
+                <!-- 手动创建 tab -->
+                <div class="mcp-tab-content active" id="mcpTabManual">
+                    <div class="mcp-form-row">
+                        <label>服务器名称</label>
+                        <input type="text" id="mcpNameInput" placeholder="my-server" />
+                    </div>
+                    <div class="mcp-form-row">
+                        <label>传输类型</label>
+                        <div class="mcp-type-buttons">
+                            <button class="mcp-type-btn active" data-type="remote" id="mcpTypeRemote">
+                                远程 HTTP/SSE
+                            </button>
+                            <button class="mcp-type-btn" data-type="local" id="mcpTypeLocal">
+                                本地 stdio
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 远程字段 -->
+                    <div class="mcp-type-fields" id="mcpRemoteFields">
+                        <div class="mcp-form-row">
+                            <label>URL</label>
+                            <input type="text" id="mcpUrlInput" placeholder="http://localhost:3000/mcp" />
+                        </div>
+                        <div class="mcp-form-row">
+                            <label>HTTP Headers（可选，JSON 格式）</label>
+                            <textarea id="mcpHeadersInput" rows="2"
+                                placeholder='{"Authorization": "Bearer xxx"}'></textarea>
+                        </div>
+                    </div>
+                    <!-- 本地字段 -->
+                    <div class="mcp-type-fields" id="mcpLocalFields" style="display:none">
+                        <div class="mcp-form-row">
+                            <label>命令 (如: npx mcp-server arg1 arg2)</label>
+                            <input type="text" id="mcpCommandInput"
+                                placeholder="uvx mcp-server-fetch" />
+                        </div>
+                        <div class="mcp-form-row">
+                            <label>环境变量（可选，每行 KEY=VALUE）</label>
+                            <textarea id="mcpEnvInput" rows="2"
+                                placeholder="API_KEY=xxx"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <!-- JSON 导入 tab -->
+                <div class="mcp-tab-content" id="mcpTabJson">
+                    <div class="mcp-form-row">
+                        <label>粘贴 MCP 服务器 JSON 配置</label>
+                        <textarea id="mcpJsonInput" rows="12"
+                            placeholder='{
+  "mcpServers": {
+    "my-server": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "xxx"]
+    }
+  }
+}'></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="mcp-modal-footer">
+                <button class="mcp-modal-btn cancel" id="mcpModalCancel">取消</button>
+                <button class="mcp-modal-btn confirm" id="mcpModalConfirm">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill 新增模态窗口 -->
+    <div class="skill-modal-overlay" id="skillModal">
+        <div class="skill-modal">
+            <div class="skill-modal-header">
+                <h3>添加 Skill</h3>
+                <button class="skill-modal-close" id="skillModalClose">&times;</button>
+            </div>
+            <div class="skill-modal-body">
+                <div class="skill-form-row">
+                    <label>Name（显示名称）</label>
+                    <input type="text" id="skillNameInput" placeholder="my-skill" />
+                </div>
+                <div class="skill-form-row">
+                    <label>Description（描述，可选）</label>
+                    <input type="text" id="skillDescInput" placeholder="当用户要求 xxx 时使用" />
+                </div>
+                <div class="skill-form-row">
+                    <label>内容（Markdown）</label>
+                    <textarea id="skillBodyInput" rows="14"
+                        placeholder='# 技能标题
+
+你现在具备 xxx 的能力。请遵循以下工作流：
+
+## 读取文件
+
+**选项 1：快速方法（推荐）**
+```bash
+cat input.txt
+```
+
+**选项 2：详细方法**
+```python
+with open("input.txt") as f:
+    content = f.read()
+```
+
+## 处理步骤
+
+详细描述...'></textarea>
+                </div>
+            </div>
+            <div class="skill-modal-footer">
+                <button class="skill-modal-btn delete" id="skillModalDelete" style="display:none">删除</button>
+                <button class="skill-modal-btn cancel" id="skillModalCancel">取消</button>
+                <button class="skill-modal-btn confirm" id="skillModalConfirm">添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill Markdown 导入模态窗口 -->
+    <div class="skill-modal-overlay" id="skillImportModal">
+        <div class="skill-modal">
+            <div class="skill-modal-header">
+                <h3>Markdown 导入</h3>
+                <button class="skill-modal-close" id="skillImportModalClose">&times;</button>
+            </div>
+            <div class="skill-modal-body">
+                <div class="skill-form-row">
+                    <label>选择本地 .md 文件，或直接粘贴完整 SKILL.md 内容</label>
+                    <div class="skill-import-file-row">
+                        <input type="file" id="skillFileInput" accept=".md,.markdown,.txt" />
+                        <button class="skill-modal-btn file-pick" id="skillFilePickBtn">选择文件</button>
+                    </div>
+                    <div class="skill-import-filename" id="skillFileName"></div>
+                </div>
+                <div class="skill-form-row">
+                    <label>SKILL.md 内容</label>
+                    <textarea id="skillImportContent" rows="16"
+                        placeholder='---
+name: my-skill
+description: 当用户要求 xxx 时使用此技能。
+---
+
+# 技能标题
+
+你现在具备 xxx 的能力。请遵循以下工作流：
+
+## 步骤一
+
+```bash
+echo "hello"
+```
+
+## 步骤二
+
+详细描述...'></textarea>
+                </div>
+                <!-- 格式错误提示 -->
+                <div class="skill-import-error" id="skillImportError" style="display:none">
+                    <div class="skill-import-error-title">格式不符合 SKILL.md 规范</div>
+                    <div class="skill-import-error-msg" id="skillImportErrorMsg"></div>
+                    <div class="skill-import-error-label">完整 SKILL.md 格式示例：</div>
+                    <pre class="skill-import-error-example" id="skillImportErrorExample"></pre>
+                </div>
+            </div>
+            <div class="skill-modal-footer">
+                <button class="skill-modal-btn cancel" id="skillImportModalCancel">取消</button>
+                <button class="skill-modal-btn confirm" id="skillImportModalConfirm">导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MCP 详情模态窗口（设置页面点击卡片后弹出） -->
+    <div class="detail-modal-overlay" id="mcpDetailModal">
+        <div class="detail-modal">
+            <div class="detail-modal-header">
+                <h3>MCP 服务器详情</h3>
+                <button class="detail-modal-close" id="mcpDetailClose">&times;</button>
+            </div>
+            <div class="detail-modal-body">
+                <div class="detail-row">
+                    <span class="detail-label">名称</span>
+                    <span class="detail-value" id="mcpDetailName">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">传输类型</span>
+                    <span class="detail-value" id="mcpDetailType">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">连接状态</span>
+                    <span class="detail-value" id="mcpDetailStatus">—</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">工具数量</span>
+                    <span class="detail-value" id="mcpDetailTools">—</span>
+                </div>
+            </div>
+            <div class="detail-modal-footer">
+                <button class="detail-modal-btn delete" id="mcpDetailDelete">删除</button>
+                <button class="detail-modal-btn cancel" id="mcpDetailCancel">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除确认对话框 -->
+    <div class="confirm-modal-overlay" id="deleteConfirmModal">
+        <div class="confirm-modal">
+            <div class="confirm-modal-body">
+                <div class="confirm-modal-icon">⚠</div>
+                <div class="confirm-modal-text" id="deleteConfirmText">是否删除</div>
+            </div>
+            <div class="confirm-modal-footer">
+                <button class="confirm-modal-btn no" id="deleteConfirmNo">否</button>
+                <button class="confirm-modal-btn yes" id="deleteConfirmYes">是</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量删除确认对话框 -->
+    <div class="batch-modal-overlay" id="batchModal">
+        <div class="batch-modal">
+            <div class="batch-modal-header">
+                <h3>确认删除</h3>
+                <button class="batch-modal-close" id="batchModalClose">&times;</button>
+            </div>
+            <div class="batch-modal-body">
+                <div class="batch-modal-icon">⚠</div>
+                <div class="batch-modal-text" id="batchModalText"></div>
+                <div class="batch-modal-list-wrap">
+                    <div class="batch-modal-list" id="batchModalList"></div>
+                    <button class="batch-modal-toggle" id="batchModalToggle" style="display:none">展开</button>
+                </div>
+            </div>
+            <div class="batch-modal-footer">
+                <button class="confirm-modal-btn no" id="batchModalNo">否</button>
+                <button class="confirm-modal-btn yes" id="batchModalYes">是</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件预览弹窗 -->
+    <div class="file-preview-overlay" id="filePreviewOverlay">
+        <div class="file-preview-modal">
+            <div class="file-preview-header">
+                <h3 id="filePreviewTitle">文件预览</h3>
+                <button class="file-preview-close" id="filePreviewClose">&times;</button>
+            </div>
+            <div class="file-preview-body" id="filePreviewBody"></div>
+        </div>
+    </div>
+
+    <!-- 目录选择弹窗 -->
+    <div class="dir-picker-overlay" id="dirPickerOverlay">
+        <div class="dir-picker-modal">
+            <div class="dir-picker-header">
+                <h3>选择工作目录</h3>
+                <button class="dir-picker-close" id="dirPickerClose">&times;</button>
+            </div>
+            <div class="dir-picker-path" id="dirPickerPath">
+                <input type="text" class="dir-picker-path-input" id="dirPickerPathInput"
+                       spellcheck="false" />
+            </div>
+            <div class="dir-picker-body" id="dirPickerBody"></div>
+            <div class="dir-picker-footer">
+                <button class="dir-picker-btn cancel" id="dirPickerCancel">取消</button>
+                <button class="dir-picker-btn confirm" id="dirPickerConfirm">选择此目录</button>
+            </div>
+        </div>
+    </div>
+
+    </div> <!-- end #app-wrapper -->
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    <script src="/static/js/01-config.js?v=20261107b"></script>
+    <script src="/static/js/02-utils.js?v=20261107b"></script>
+    <script src="/static/js/03-dir-picker.js?v=20261107b"></script>
+    <script src="/static/js/04-model-selector.js?v=20261107b"></script>
+    <script src="/static/js/05-settings-manager.js?v=20261107b"></script>
+    <script src="/static/js/06-file-manager.js?v=20261107b"></script>
+    <script src="/static/js/07-audio.js?v=20261107b"></script>
+    <script src="/static/js/08-asr.js?v=20261107b"></script>
+    <script src="/static/js/09-message-ui.js?v=20261107b"></script>
+    <script src="/static/js/10-message-handler.js?v=20261107b"></script>
+    <script src="/static/js/11-send.js?v=20261107b"></script>
+    <script src="/static/js/12-mcp.js?v=20261107b"></script>
+    <script src="/static/js/13-session.js?v=20261107b"></script>
+    <script src="/static/js/14-settings.js?v=20261107b"></script>
+    <script src="/static/js/15-events.js?v=20261107b"></script>
+    <script src="/static/js/16-permission.js?v=20261107b"></script>
+    <script src="/static/js/17-live2d.js?v=20261107b"></script>
+    <script src="/static/js/18-emotion.js?v=20261107b"></script>
+    <script src="/static/js/19-lipsync.js?v=20261107b"></script>
+</body>
+</html>

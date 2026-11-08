@@ -1,0 +1,90 @@
+/* 11-live2d.css — 全屏聊天 + 可拖动桌宠 */
+html, body {
+    background: var(--bg, #f0f4f8) !important;
+    overflow: hidden;
+}
+
+#app-wrapper {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100vh !important;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.97) !important;
+    overflow-y: auto;
+}
+
+/* 统一输入框内的工具条；覆盖通用文件按钮的绝对定位。 */
+.bottom-bar .upload-btn {
+    position: relative;
+    inset: auto;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    margin-left: auto;
+}
+
+#app {
+    background: transparent !important;
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* 消息区域适配 */
+.messages {
+    background: transparent !important;
+}
+
+/* oh-my-live2d stage is full-screen; the transparent canvas sits above chat. */
+.oml2d, #oml2d, [class*="oml2d"] canvas {
+    z-index: 2 !important;
+}
+
+#live2d-pet-handle {
+    position: fixed;
+    z-index: 4;
+    display: none;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 12px;
+}
+
+#live2d-pet-handle.ready { display: block; }
+#live2d-pet-handle:hover { border-color: rgba(74, 144, 217, 0.28); }
+#live2d-pet-handle.dragging { cursor: grabbing; }
+
+.live2d-pet-size {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    gap: 3px;
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+
+#live2d-pet-handle:hover .live2d-pet-size,
+#live2d-pet-handle:focus-within .live2d-pet-size { opacity: 1; }
+
+.live2d-pet-size button {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: 7px;
+    color: #fff;
+    background: rgba(35, 45, 65, .72);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.live2d-pet-size button:hover { background: var(--primary-dark, #2e6db4); }
+
+@media (max-width: 600px) {
+    #live2d-pet-handle { z-index: 8; }
+    .live2d-pet-size { opacity: 1; }
+}

@@ -1,0 +1,533 @@
+/* 05-mcp.css — MCP 弹出面板 + 滑动开关 + 错误气泡 + 工具展开 + 新增模态 + 详情模态 */
+
+/* ── MCP 弹出面板 ── */
+
+.mcp-popup {
+    display: none;
+    position: absolute;
+    bottom: calc(100% - 4px);
+    left: 16px;
+    min-width: 280px;
+    max-width: 380px;
+    background: var(--white);
+    border: 1px solid var(--bg-dark);
+    border-radius: var(--radius);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+    animation: slideUp 0.2s ease;
+    z-index: 100;
+    overflow: visible;
+}
+
+.mcp-popup.active {
+    display: block;
+}
+
+.mcp-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--bg-dark);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.mcp-popup-count {
+    font-size: 11px;
+    color: var(--text-lighter);
+    font-weight: 400;
+}
+
+.mcp-popup-list {
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.mcp-empty {
+    padding: 16px 14px;
+    font-size: 12px;
+    color: var(--text-lighter);
+    text-align: center;
+}
+
+.mcp-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    position: relative;
+}
+
+.mcp-item + .mcp-item {
+    border-top: 1px solid var(--bg-lighter);
+}
+
+.mcp-item-name {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcp-item-type {
+    font-size: 10px;
+    color: var(--text-lighter);
+    background: var(--bg-lighter);
+    padding: 1px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.mcp-item-tools {
+    font-size: 11px;
+    color: var(--text-lighter);
+    flex-shrink: 0;
+    min-width: 50px;
+    text-align: right;
+}
+
+/* ── MCP 滑动开关 ── */
+
+.mcp-toggle {
+    position: relative;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.mcp-toggle input {
+    display: none;
+}
+
+.mcp-slider {
+    position: absolute;
+    inset: 0;
+    background: #ccc;
+    border-radius: 20px;
+    transition: background 0.3s;
+}
+
+.mcp-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    left: 2px;
+    top: 2px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.mcp-toggle input:checked + .mcp-slider {
+    background: var(--success);
+}
+
+.mcp-toggle input:checked + .mcp-slider::before {
+    transform: translateX(16px);
+}
+
+/* ── MCP 错误气泡 ── */
+
+.mcp-error-bubble {
+    transform: translateY(-50%);
+    background: #fef0f0;
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #c0392b;
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+}
+
+.mcp-error-bubble::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 6px solid transparent;
+    border-right-color: var(--danger);
+}
+
+/* ── MCP 新增行 ── */
+
+.mcp-add-row {
+    cursor: pointer;
+    border-top: 1px solid var(--bg-dark);
+    color: var(--primary);
+}
+
+.mcp-add-row:hover {
+    background: var(--bg-lighter);
+}
+
+.mcp-add-icon {
+    font-size: 16px;
+    font-weight: 500;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+/* ── MCP 工具展开区域 ── */
+
+.mcp-tools-expandable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.mcp-tools-expandable:hover {
+    color: var(--primary);
+}
+
+.mcp-tools-expand {
+    padding: 0 14px 4px 28px;
+    background: var(--bg-lighter);
+    border-top: 1px solid var(--bg-lighter);
+}
+
+.mcp-tool-sub-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+}
+
+.mcp-tool-sub-row + .mcp-tool-sub-row {
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.mcp-tool-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.mcp-tool-name {
+    font-size: 12px;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mcp-tool-desc {
+    font-size: 11px;
+    color: var(--text-lighter);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 1px;
+}
+
+.mcp-tool-error {
+    font-size: 11px;
+    color: var(--danger);
+    padding: 4px 0;
+}
+
+/* 小号滑动开关（工具级） */
+.mcp-toggle-sm {
+    width: 28px;
+    height: 16px;
+}
+
+.mcp-toggle-sm .mcp-slider::before {
+    width: 12px;
+    height: 12px;
+}
+
+.mcp-toggle-sm input:checked + .mcp-slider::before {
+    transform: translateX(12px);
+}
+
+/* ── MCP 新增模态窗口 ── */
+
+.mcp-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+}
+
+.mcp-modal-overlay.active {
+    display: flex;
+}
+
+.mcp-modal {
+    background: var(--white);
+    border-radius: 12px;
+    width: 420px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.2s ease;
+}
+
+.mcp-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px 12px;
+}
+
+.mcp-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.mcp-modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--text-lighter);
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.mcp-modal-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--bg-dark);
+    padding: 0 20px;
+}
+
+.mcp-tab {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text-lighter);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: 0.2s;
+}
+
+.mcp-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.mcp-modal-body {
+    padding: 16px 20px;
+}
+
+.mcp-tab-content {
+    display: none;
+}
+
+.mcp-tab-content.active {
+    display: block;
+}
+
+.mcp-form-row {
+    margin-bottom: 14px;
+}
+
+.mcp-form-row label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-light);
+    margin-bottom: 4px;
+}
+
+.mcp-form-row input[type="text"],
+.mcp-form-row textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--bg-dark);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.mcp-form-row input:focus,
+.mcp-form-row textarea:focus {
+    border-color: var(--primary);
+}
+
+.mcp-form-row textarea {
+    resize: vertical;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 12px;
+}
+
+.mcp-type-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.mcp-type-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--bg-dark);
+    border-radius: 6px;
+    background: var(--white);
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s;
+    color: var(--text);
+}
+
+.mcp-type-btn.active {
+    border-color: var(--primary);
+    background: rgba(74, 144, 217, 0.08);
+    color: var(--primary);
+}
+
+.mcp-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 20px 16px;
+}
+
+.mcp-modal-btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid var(--bg-dark);
+    background: var(--white);
+    color: var(--text);
+    transition: 0.2s;
+}
+
+.mcp-modal-btn.confirm {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.mcp-modal-btn.confirm:hover {
+    opacity: 0.9;
+}
+
+/* ── MCP 详情模态窗口 ── */
+.detail-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 600;
+    align-items: center;
+    justify-content: center;
+}
+.detail-modal-overlay.active {
+    display: flex;
+}
+
+.detail-modal {
+    background: var(--white);
+    border-radius: 12px;
+    width: 360px;
+    max-width: 90vw;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    animation: fadeIn 0.2s ease;
+}
+
+.detail-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px 12px;
+}
+.detail-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+.detail-modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    color: var(--text-lighter);
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+}
+.detail-modal-close:hover {
+    color: var(--text);
+}
+
+.detail-modal-body {
+    padding: 8px 20px 16px;
+}
+.detail-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--bg-dark);
+    font-size: 13px;
+}
+.detail-row:last-child {
+    border-bottom: none;
+}
+.detail-label {
+    color: var(--text-light);
+    flex-shrink: 0;
+    min-width: 70px;
+}
+.detail-value {
+    color: var(--text);
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.detail-value.connected {
+    color: var(--success);
+    font-weight: 500;
+}
+.detail-value.disconnected {
+    color: var(--text-lighter);
+}
+
+.detail-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px 16px;
+}
+.detail-modal-btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid var(--bg-dark);
+    background: var(--white);
+    color: var(--text);
+    transition: 0.2s;
+}
+.detail-modal-btn.cancel:hover {
+    background: var(--bg);
+}
+.detail-modal-btn.delete {
+    background: var(--white);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+.detail-modal-btn.delete:hover {
+    background: var(--danger);
+    color: var(--white);
+}
+

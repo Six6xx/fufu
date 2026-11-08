@@ -1,0 +1,383 @@
+/* 10-task-progress.css — 任务进度条 + 取消/变更按钮 + 伴侣对话提示 */
+
+/* ── 任务进度条 ── */
+.task-progress-bar {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
+    margin: 0;
+    background: #f8f9fa;
+    border-top: 1px solid var(--bg-dark);
+    border-bottom: 1px solid var(--bg-dark);
+    flex-shrink: 0;
+    font-size: 13px;
+    animation: slideUp 0.3s ease;
+}
+
+.task-progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-progress-desc {
+    color: var(--text-light);
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-progress-step {
+    color: var(--text);
+    font-weight: 500;
+}
+
+.task-progress-preview {
+    font-size: 12px;
+    color: var(--text-light);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.task-progress-track {
+    height: 4px;
+    background: var(--bg-dark);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.task-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light));
+    border-radius: 2px;
+    width: 5%;
+    transition: width 0.3s ease;
+}
+
+.task-progress-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.task-cancel-btn,
+.task-change-btn {
+    padding: 4px 12px;
+    border: 1px solid var(--bg-dark);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-light);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.task-cancel-btn:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.task-change-btn:hover {
+    border-color: var(--warning);
+    color: var(--warning);
+}
+
+.task-change-btn.highlight {
+    border-color: var(--warning);
+    color: var(--warning);
+    animation: pulse-highlight 1s ease-in-out infinite;
+}
+
+@keyframes pulse-highlight {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* ── 伴侣碎碎念浮动提示 ── */
+.companion-murmur {
+    position: sticky;
+    top: 8px;
+    align-self: center;
+    z-index: 100;
+    padding: 6px 16px;
+    font-size: 0.85em;
+    color: rgba(100, 100, 120, 0.75);
+    background: rgba(245, 245, 250, 0.92);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    white-space: nowrap;
+    max-width: 80%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 0;
+}
+
+.companion-murmur.visible {
+    opacity: 1;
+}
+
+.companion-murmur.fade-out {
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+/* idle 碎碎念：稍微不同的风格 */
+.murmur-idle {
+    font-style: italic;
+    opacity: 0.85;
+}
+
+/* proactive 主动搭话：紫色调、正常字重、带小气泡暗示 */
+.murmur-proactive {
+    font-style: normal;
+    font-weight: 500;
+    color: #7c3aed;
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(139, 92, 246, 0.04));
+    border-left: 2px solid rgba(124, 58, 237, 0.4);
+    padding-left: 8px;
+    position: relative;
+}
+
+.murmur-proactive::before {
+    content: '💬';
+    position: absolute;
+    left: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+/* ── 分段推送样式 ── */
+.companion-segments {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.companion-segment {
+    position: relative;
+    border-left: 2px solid #8b5cf6;
+    padding: 4px 8px;
+    animation: segment-appear 0.3s ease-out;
+    font-size: 0.9em;
+    color: #e0e0e0;
+}
+
+@keyframes segment-appear {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 话题恢复段——黄色调 */
+.segment-resume {
+    border-left-color: rgba(234, 179, 8, 0.6);
+    background: linear-gradient(135deg, rgba(234, 179, 8, 0.06), rgba(250, 204, 21, 0.03));
+}
+
+.segment-resume::before {
+    content: '↩';
+    position: absolute;
+    left: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    opacity: 0.6;
+    color: rgba(234, 179, 8, 0.8);
+}
+
+/* Review 分段 — 执行后的回想/观察 */
+.segment-review {
+    border-left: 3px solid rgba(100, 160, 220, 0.6);
+    background: rgba(100, 160, 220, 0.08);
+    padding: 6px 10px;
+    margin: 4px 0;
+    border-radius: 6px;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.85);
+    position: relative;
+}
+
+.segment-review::before {
+    content: '💭';
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75em;
+    opacity: 0.7;
+}
+
+/* ── 认知思维气泡 ── */
+.cognitive-thought-container {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    pointer-events: none;
+}
+
+.cognitive-thought {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    position: absolute;
+    width: max-content;
+    max-width: min(320px, calc(100vw - 24px));
+    max-height: calc(var(--msg-font-size, 14px) * 10);
+    overflow: hidden;
+    padding: 9px 12px;
+    border: 1px solid rgba(90, 115, 150, .22);
+    border-radius: 14px;
+    font-size: var(--msg-font-size, 14px);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    color: var(--text, #2c3e50);
+    background: rgba(255, 255, 255, .96);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px rgba(20, 35, 60, .16);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .35s ease;
+}
+
+.cognitive-thought .thought-icon {
+    flex-shrink: 0;
+    font-size: 1.1em;
+}
+
+.cognitive-thought .thought-text {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+}
+
+/* ── 模式: 深入思考（蓝色调）── */
+.thought-deepen {
+    background: rgba(239, 246, 255, .97);
+    border-color: rgba(60, 120, 200, .3);
+    color: #274c77;
+}
+
+/* ── 模式: 发散联想（紫色调）── */
+.thought-diverge {
+    background: rgba(250, 245, 255, .97);
+    border-color: rgba(140, 80, 200, .28);
+    color: #553c75;
+}
+
+/* ── 模式: 日常闲想（灰色调）── */
+.thought-idle {
+    background: rgba(255, 255, 255, .96);
+    border-color: rgba(120, 130, 145, .24);
+    color: #4b5563;
+}
+
+/* ── 模式: 自主执行（琥琥色/橙色调）── */
+.thought-act {
+    background: rgba(255, 247, 237, .97);
+    border-color: rgba(220, 140, 40, .32);
+    color: #854d0e;
+}
+
+/* ── AI 思维外显 Toggle ── */
+.externalize-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+.externalize-toggle:hover {
+    opacity: 1;
+}
+.toggle-icon {
+    font-size: 1.1em;
+}
+.externalize-toggle .toggle-label {
+    font-size: 12px;
+    color: #ccc;
+    white-space: nowrap;
+}
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+}
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(100, 100, 100, 0.4);
+    border-radius: 18px;
+    transition: 0.3s;
+}
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    border-radius: 50%;
+    transition: 0.3s;
+}
+.toggle-switch input:checked + .toggle-slider {
+    background-color: rgba(100, 160, 220, 0.7);
+}
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(14px);
+}
+
+/* ── Cognitive Nudge (轻提示) ── */
+.cognitive-nudge {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 16px;
+    font-size: 0.85em;
+    background: rgba(124, 58, 237, 0.12);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+    color: rgba(210, 180, 255, 0.95);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 101;
+    animation: nudge-appear 0.4s ease;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+.cognitive-nudge:hover {
+    background: rgba(124, 58, 237, 0.22);
+    transform: scale(1.03);
+}
+.cognitive-nudge .nudge-icon {
+    font-size: 1.1em;
+    animation: nudge-pulse 2s ease-in-out infinite;
+}
+@keyframes nudge-appear {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes nudge-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}

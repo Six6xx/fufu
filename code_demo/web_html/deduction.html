@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 推理大师 · AI 自动导航</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0d1117; color: #c9d1d9;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh; display: flex; justify-content: center; align-items: center;
+    padding: 20px;
+  }
+  .game {
+    background: #161b22; border-radius: 16px;
+    padding: 30px; max-width: 620px; width: 100%;
+    box-shadow: 0 0 60px rgba(88,166,255,0.1);
+  }
+  h1 {
+    text-align: center; font-size: 22px; font-weight: 600;
+    color: #58a6ff; margin-bottom: 2px; letter-spacing: 1px;
+  }
+  .subtitle {
+    text-align: center; color: #484f58; font-size: 12px; margin-bottom: 18px;
+  }
+
+  .info-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #0d1117; border-radius: 8px; padding: 8px 14px;
+    margin-bottom: 12px; font-size: 13px; color: #8b949e;
+  }
+  .info-bar .stat { display: flex; align-items: center; gap: 4px; }
+  .info-bar .num { color: #58a6ff; font-weight: bold; font-size: 15px; }
+
+  /* 当前猜测 */
+  .guess-area {
+    background: #0d1117; border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 12px; text-align: center;
+  }
+  .guess-slots {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 10px;
+  }
+  .slot {
+    width: 52px; height: 52px; border-radius: 10px;
+    border: 2px dashed #30363d; background: #0d1117;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; transition: all 0.2s;
+  }
+  .slot.filled { border-style: solid; border-color: #58a6ff; background: #161b22; }
+  .slot.reveal { border-color: #3fb950; background: #0d2818; }
+
+  .color-picker {
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .color-btn {
+    width: 38px; height: 38px; border-radius: 50%; border: 2px solid transparent;
+    cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .color-btn:hover { transform: scale(1.15); border-color: #fff; }
+  .color-btn:active { transform: scale(0.95); }
+  .color-btn.dim { opacity: 0.15; filter: grayscale(1); cursor: default; }
+  .color-btn.dim:hover { transform: none; border-color: transparent; }
+  .color-btn .label {
+    position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; color: #8b949e; white-space: nowrap;
+  }
+
+  .action-btns {
+    display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+  }
+  .action-btns button {
+    padding: 7px 18px; border-radius: 8px; border: none;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-guess { background: #1f6feb; color: #fff; }
+  .btn-guess:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-guess:hover:not(:disabled) { background: #388bfd; }
+  .btn-clear { background: #21262d; color: #8b949e; }
+  .btn-clear:hover { background: #30363d; color: #c9d1d9; }
+  .btn-hint { background: #21262d; color: #d29922; }
+  .btn-hint:hover { background: #30363d; }
+  .btn-new { background: #238636; color: #fff; }
+  .btn-new:hover { background: #2ea043; }
+  .btn-ai { background: #6f42c1; color: #fff; }
+  .btn-ai:hover { background: #7c4dd4; }
+  .btn-ai.running { background: #da3633; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+  /* 推理面板 */
+  .reasoning-panel {
+    background: #0d1117; border: 1px solid #30363d; border-radius: 10px;
+    padding: 14px; margin-bottom: 12px; display: none;
+    text-align: left; font-size: 13px; line-height: 1.7;
+  }
+  .reasoning-panel.show { display: block; }
+  .reasoning-panel .step { color: #58a6ff; font-weight: 600; margin-bottom: 4px; }
+  .reasoning-panel .line { color: #c9d1d9; padding-left: 12px; }
+  .reasoning-panel .conclusion { color: #3fb950; font-weight: 500; padding-left: 12px; }
+  .reasoning-panel .excluded-line { color: #f85149; padding-left: 12px; }
+  .reasoning-panel .guess-line { color: #d29922; font-weight: 500; padding-left: 12px; }
+  .reasoning-panel .waiting { color: #484f58; text-align: center; padding: 10px; }
+
+  /* 历史 */
+  .history-area { margin-top: 12px; max-height: 280px; overflow-y: auto; }
+  .history-area::-webkit-scrollbar { width: 4px; }
+  .history-area::-webkit-scrollbar-track { background: transparent; }
+  .history-area::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+  .history-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 10px; border-radius: 6px; margin-bottom: 3px;
+    font-size: 13px; animation: slideIn 0.2s ease;
+  }
+  .history-item.ai-move { background: #1c1335; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .history-item .h-guess { display: flex; gap: 3px; font-size: 20px; min-width: 90px; }
+  .history-item .h-result { font-weight: 500; }
+  .history-item .h-exact { color: #3fb950; }
+  .history-item .h-color { color: #d29922; }
+  .history-item .h-wrong { color: #30363d; }
+  .history-item .h-num { color: #484f58; min-width: 22px; font-size: 12px; }
+  .history-item .h-ai-tag { font-size: 10px; color: #7c4dd4; background: #1c1335; padding: 1px 6px; border-radius: 4px; }
+
+  /* 消息 */
+  .message {
+    margin-top: 10px; padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; line-height: 1.6; display: none;
+  }
+  .message.info { display: block; background: #0d1117; border: 1px solid #30363d; color: #8b949e; }
+  .message.success { display: block; background: #0d2818; border: 1px solid #238636; color: #3fb950; }
+  .message.hint { display: block; background: #1c1500; border: 1px solid #d29922; color: #d29922; }
+
+  .excluded-row {
+    display: flex; justify-content: center; gap: 6px; margin-top: 6px;
+    min-height: 20px; flex-wrap: wrap;
+  }
+  .excluded-item { font-size: 16px; opacity: 0.3; transition: all 0.2s; }
+  .excluded-item.dim { opacity: 0.1; filter: grayscale(1); }
+
+  /* 速度控制 */
+  .speed-control {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-top: 8px; font-size: 12px; color: #484f58;
+  }
+  .speed-control input[type="range"] {
+    width: 80px; height: 4px; -webkit-appearance: none;
+    background: #30363d; border-radius: 2px; outline: none;
+  }
+  .speed-control input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px;
+    border-radius: 50%; background: #58a6ff; cursor: pointer;
+  }
+
+  @media (max-width: 500px) {
+    .game { padding: 16px; }
+    .slot { width: 44px; height: 44px; font-size: 22px; }
+    .color-btn { width: 34px; height: 34px; }
+    .reasoning-panel { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="game">
+  <h1>🧩 推理大师</h1>
+  <p class="subtitle">AI 自动导航 · 4个位置 · 6种颜色 · 16次机会</p>
+
+  <div class="info-bar">
+    <span class="stat">🎯 已猜 <span class="num" id="attempts">0</span></span>
+    <span class="stat">⏳ 剩余 <span class="num" id="remaining">16</span></span>
+    <span class="stat">💡 提示 <span class="num" id="hintsUsed">0</span></span>
+  </div>
+
+  <!-- 当前猜测 -->
+  <div class="guess-area">
+    <div class="guess-slots" id="slots">
+      <div class="slot" data-i="0">?</div>
+      <div class="slot" data-i="1">?</div>
+      <div class="slot" data-i="2">?</div>
+      <div class="slot" data-i="3">?</div>
+    </div>
+
+    <div class="color-picker" id="colorPicker"></div>
+    <div class="excluded-row" id="excludedRow"></div>
+
+    <div class="action-btns">
+      <button class="btn-clear" id="btnClear">✕ 清空</button>
+      <button class="btn-guess" id="btnGuess" disabled>✓ 确认猜测</button>
+      <button class="btn-hint" id="btnHint">💡 提示</button>
+      <button class="btn-ai" id="btnAuto">🤖 AI 自动推理</button>
+      <button class="btn-new" id="btnNew">🔄 新游戏</button>
+    </div>
+
+    <div class="speed-control" id="speedControl" style="display:none">
+      <span>🐢</span>
+      <input type="range" id="speedSlider" min="300" max="3000" value="1200" step="100">
+      <span>🐇</span>
+      <span id="speedLabel">1.2s</span>
+    </div>
+  </div>
+
+  <!-- 推理面板 -->
+  <div class="reasoning-panel" id="reasoningPanel">
+    <div class="waiting" id="reasoningWaiting">🤖 AI 思考中...</div>
+    <div id="reasoningContent"></div>
+  </div>
+
+  <!-- 消息 -->
+  <div class="message" id="message"></div>
+
+  <!-- 历史 -->
+  <div class="history-area" id="history"></div>
+</div>
+
+<script>
+const COLORS = [
+  { key: 'R', emoji: '🔴', name: '红', hex: '#f85149' },
+  { key: 'G', emoji: '🟢', name: '绿', hex: '#3fb950' },
+  { key: 'B', emoji: '🔵', name: '蓝', hex: '#58a6ff' },
+  { key: 'Y', emoji: '🟡', name: '黄', hex: '#d29922' },
+  { key: 'P', emoji: '🟣', name: '紫', hex: '#bc8cff' },
+  { key: 'O', emoji: '🟠', name: '橙', hex: '#f0883e' },
+];
+
+const SLOTS = 4;
+const MAX_ATTEMPTS = 16;
+
+// 状态
+let state = {
+  secret: [],
+  currentGuess: [],
+  history: [],
+  attempts: 0,
+  hintsUsed: 0,
+  solved: false,
+  excluded: new Set(),
+};
+
+let autoRunning = false;
+let autoTimer = null;
+
+const $ = id => document.getElementById(id);
+const slots = document.querySelectorAll('.slot');
+const historyEl = $('history');
+const messageEl = $('message');
+const reasoningPanel = $('reasoningPanel');
+const reasoningContent = $('reasoningContent');
+const reasoningWaiting = $('reasoningWaiting');
+
+// 初始化
+function init() {
+  state.secret = [];
+  state.currentGuess = [];
+  state.history = [];
+  state.attempts = 0;
+  state.hintsUsed = 0;
+  state.solved = false;
+  state.excluded = new Set();
+
+  const keys = COLORS.map(c => c.key);
+  for (let i = 0; i < SLOTS; i++) {
+    state.secret.push(keys[Math.floor(Math.random() * keys.length)]);
+  }
+
+  stopAuto();
+  renderSlots();
+  renderColorPicker();
+  renderExcluded();
+  updateInfo();
+  historyEl.innerHTML = '';
+  reasoningPanel.classList.remove('show');
+  setMessage('选择颜色开始推理，或点 🤖 AI 自动推理', 'info');
+  $('btnGuess').disabled = true;
+  $('btnAuto').textContent = '🤖 AI 自动推理';
+  $('btnAuto').className = 'btn-ai';
+  $('speedControl').style.display = 'none';
+}
+
+// 渲染槽
+function renderSlots() {
+  slots.forEach((el, i) => {
+    if (i < state.currentGuess.length) {
+      const c = COLORS.find(c => c.key === state.currentGuess[i]);
+      el.textContent = c ? c.emoji : '?';
+      el.className = 'slot filled';
+    } else {
+      el.textContent = '?';
+      el.className = 'slot';
+    }
+  });
+  $('btnGuess').disabled = state.currentGuess.length !== SLOTS || state.solved;
+}
+
+// 渲染颜色选择器
+function renderColorPicker() {
+  $('colorPicker').innerHTML = '';
+  COLORS.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'color-btn';
+    btn.style.background = c.hex;
+    btn.textContent = c.emoji;
+    btn.dataset.key = c.key;
+    btn.title = c.name;
+    const label = document.createElement('span');
+    label.className = 'label';
+    label.textContent = c.name;
+    btn.appendChild(label);
+    btn.addEventListener('click', () => {
+      if (autoRunning) return;
+      if (state.excluded.has(c.key)) return;
+      if (state.currentGuess.length >= SLOTS) return;
+      state.currentGuess.push(c.key);
+      renderSlots();
+    });
+    $('colorPicker').appendChild(btn);
+  });
+}
+
+// 排除渲染
+function renderExcluded() {
+  $('excludedRow').innerHTML = '';
+  COLORS.forEach(c => {
+    const span = document.createElement('span');
+    span.className = 'excluded-item';
+    if (state.excluded.has(c.key)) span.classList.add('dim');
+    span.textContent = c.emoji;
+    $('excludedRow').appendChild(span);
+  });
+  // 更新颜色选择器外观
+  document.querySelectorAll('.color-btn').forEach(btn => {
+    if (state.excluded.has(btn.dataset.key)) btn.classList.add('dim');
+    else btn.classList.remove('dim');
+  });
+}
+
+// 更新信息栏
+function updateInfo() {
+  $('attempts').textContent = state.attempts;
+  $('remaining').textContent = MAX_ATTEMPTS - state.attempts;
+  $('hintsUsed').textContent = state.hintsUsed;
+}
+
+// 设置消息
+function setMessage(msg, type = 'info') {
+  messageEl.className = `message ${type}`;
+  messageEl.innerHTML = msg;
+}
+
+// 清空
+$('btnClear').addEventListener('click', () => {
+  if (autoRunning || state.solved) return;
+  state.currentGuess = [];
+  renderSlots();
+});
+
+// 手动猜测
+$('btnGuess').addEventListener('click', () => {
+  if (state.currentGuess.length !== SLOTS || state.solved) return;
+  stopAuto();
+  makeGuess([...state.currentGuess]);
+});
+
+// 提示
+$('btnHint').addEventListener('click', () => {
+  if (state.solved) return;
+  state.hintsUsed++;
+  const unknown = [];
+  for (let i = 0; i < SLOTS; i++) {
+    const guessed = state.history.some(h => h.guess[i] === state.secret[i]);
+    if (!guessed) unknown.push(i);
+  }
+  let hintMsg;
+  if (unknown.length > 0) {
+    const idx = unknown[Math.floor(Math.random() * unknown.length)];
+    const c = COLORS.find(c => c.key === state.secret[idx]);
+    hintMsg = `💡 提示: 位置 ${idx + 1} 是 ${c.emoji}${c.name}`;
+  } else {
+    hintMsg = '💡 提示: 所有颜色都猜过，试试排列组合！';
+  }
+  setMessage(hintMsg, 'hint');
+  updateInfo();
+});
+
+// 新游戏
+$('btnNew').addEventListener('click', init);
+
+// 速度控制
+$('speedSlider').addEventListener('input', () => {
+  $('speedLabel').textContent = (parseInt($('speedSlider').value) / 1000).toFixed(1) + 's';
+});
+
+// ─── AI 推理引擎 ───────────────────────────────────────
+
+function aiReason() {
+  const n = SLOTS;
+  const keys = COLORS.map(c => c.key);
+
+  // 生成所有组合
+  let all = generateAll(keys, n);
+
+  // 用历史过滤
+  for (const h of state.history) {
+    const filtered = [];
+    for (const candidate of all) {
+      const gExact = countExact(h.guess, candidate);
+      const gColor = countColorOnly(h.guess, candidate);
+      if (gExact === h.exact && gColor === h.colorOnly) {
+        filtered.push(candidate);
+      }
+    }
+    all = filtered;
+  }
+
+  return {
+    all,
+    total: keys.length ** n,
+    remaining: all.length,
+  };
+}
+
+function generateAll(keys, n) {
+  if (n === 0) return [[]];
+  const rest = generateAll(keys, n - 1);
+  const result = [];
+  for (const r of rest) {
+    for (const k of keys) {
+      result.push([k, ...r]);
+    }
+  }
+  return result;
+}
+
+function countExact(guess, candidate) {
+  return guess.filter((g, i) => g === candidate[i]).length;
+}
+
+function countColorOnly(guess, candidate) {
+  const sc = {}, gc = {};
+  for (let i = 0; i < SLOTS; i++) {
+    if (guess[i] !== candidate[i]) {
+      sc[candidate[i]] = (sc[candidate[i]] || 0) + 1;
+      gc[guess[i]] = (gc[guess[i]] || 0) + 1;
+    }
+  }
+  let total = 0;
+  for (const [c, cnt] of Object.entries(gc)) {
+    total += Math.min(cnt, sc[c] || 0);
+  }
+  return total;
+}
+
+// ─── AI 推理展示 ────────────────────────────────────────
+
+function showReasoning(reason, guess) {
+  reasoningPanel.classList.add('show');
+  reasoningWaiting.style.display = 'none';
+  reasoningContent.style.display = 'block';
+
+  const n = SLOTS;
+  const lines = [];
+
+  lines.push(`<div class="step">🧠 第 ${reason.step} 步推理</div>`);
+  lines.push(`<div class="line">总可能组合: ${reason.total}</div>`);
+  lines.push(`<div class="line">历史过滤后剩余: ${reason.remaining}</div>`);
+
+  if (reason.remaining <= 10) {
+    lines.push(`<div class="line">候选列表:</div>`);
+    for (const c of reason.all) {
+      const emojis = c.map(k => COLORS.find(c => c.key === k).emoji).join('');
+      lines.push(`<div class="line">  ${emojis}</div>`);
+    }
+  }
+
+  // 排除分析
+  const guessed = new Set();
+  for (const h of state.history) {
+    for (const g of h.guess) guessed.add(g);
+  }
+  const appeared = new Set();
+  for (const c of reason.all) {
+    for (const k of c) appeared.add(k);
+  }
+  const confirmedExcluded = [...guessed].filter(k => !appeared.has(k));
+  if (confirmedExcluded.length > 0) {
+    const emojis = confirmedExcluded.map(k => {
+      const c = COLORS.find(c => c.key === k);
+      return `${c.emoji}${c.name}`;
+    }).join('、');
+    lines.push(`<div class="excluded-line">❌ 已排除: ${emojis}</div>`);
+  }
+
+  // 位置分析
+  if (reason.remaining > 1) {
+    lines.push(`<div class="line">📊 位置分析:</div>`);
+    for (let pos = 0; pos < n; pos++) {
+      const freq = {};
+      for (const c of reason.all) {
+        freq[c[pos]] = (freq[c[pos]] || 0) + 1;
+      }
+      const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+      const parts = sorted.map(([k, cnt]) => {
+        const c = COLORS.find(c => c.key === k);
+        const pct = Math.round(cnt / reason.remaining * 100);
+        return `${c.emoji}${pct}%`;
+      });
+      lines.push(`<div class="line">  位置${pos+1}: ${parts.join(' ')}</div>`);
+    }
+  }
+
+  // 结论
+  const guessEmojis = guess.map(k => COLORS.find(c => c.key === k).emoji).join('');
+  lines.push(`<div class="guess-line">🎯 猜测: ${guessEmojis}</div>`);
+
+  reasoningContent.innerHTML = lines.join('\n');
+}
+
+function clearReasoning() {
+  reasoningPanel.classList.remove('show');
+  reasoningContent.style.display = 'none';
+  reasoningWaiting.style.display = 'block';
+}
+
+// ─── 猜测核心 ──────────────────────────────────────────
+
+function makeGuess(guess, isAuto = false) {
+  state.attempts++;
+  const secret = state.secret;
+
+  let exact = 0;
+  const secretRem = [];
+  const guessRem = [];
+  for (let i = 0; i < SLOTS; i++) {
+    if (guess[i] === secret[i]) exact++;
+    else { secretRem.push(secret[i]); guessRem.push(guess[i]); }
+  }
+
+  let colorOnly = 0;
+  const used = [];
+  for (const g of guessRem) {
+    const idx = secretRem.findIndex((s, i) => s === g && !used[i]);
+    if (idx !== -1) { colorOnly++; used[idx] = true; }
+  }
+
+  for (const g of guess) {
+    if (!secret.includes(g)) state.excluded.add(g);
+  }
+
+  const result = { guess, exact, colorOnly, isAuto };
+  state.history.push(result);
+  state.currentGuess = [];
+
+  if (exact === SLOTS) {
+    state.solved = true;
+    setMessage(`🎉 正确！用了 ${state.attempts} 次猜中！`, 'success');
+    stopAuto();
+  }
+
+  renderHistory();
+  renderSlots();
+  renderExcluded();
+  updateInfo();
+
+  if (!state.solved) {
+    const hints = [];
+    if (exact > 0) {
+      const pos = [];
+      for (let i = 0; i < SLOTS; i++) {
+        if (guess[i] === secret[i]) pos.push(i + 1);
+      }
+      hints.push(`✅ 位置 ${pos.join(', ')} 完全正确`);
+    }
+    if (colorOnly > 0) hints.push(`🔄 ${colorOnly} 个颜色正确但位置不对`);
+
+    const wrong = [];
+    for (const g of guess) {
+      if (!secret.includes(g) && !wrong.includes(g)) {
+        const c = COLORS.find(c => c.key === g);
+        wrong.push(`${c.emoji}${c.name}`);
+      }
+    }
+    if (wrong.length > 0) hints.push(`❌ ${wrong.join('、')} 不在答案中`);
+
+    if (state.history.length >= 2) {
+      const prev = state.history[state.history.length - 2];
+      if (prev.exact < exact) hints.push('🔥 比上次更接近了！');
+      else if (prev.exact > exact) hints.push('❄️ 比上次远了');
+    }
+
+    setMessage(hints.join('<br>'), 'info');
+  }
+}
+
+// 渲染历史
+function renderHistory() {
+  historyEl.innerHTML = '';
+  for (let i = state.history.length - 1; i >= 0; i--) {
+    const h = state.history[i];
+    const div = document.createElement('div');
+    div.className = 'history-item' + (h.isAuto ? ' ai-move' : '');
+
+    const num = document.createElement('span');
+    num.className = 'h-num';
+    num.textContent = `#${i + 1}`;
+    div.appendChild(num);
+
+    const guessSpan = document.createElement('span');
+    guessSpan.className = 'h-guess';
+    guessSpan.textContent = h.guess.map(k => COLORS.find(c => c.key === k).emoji).join('');
+    div.appendChild(guessSpan);
+
+    const result = document.createElement('span');
+    result.className = 'h-result';
+    result.innerHTML =
+      `<span class="h-exact">●`.repeat(h.exact) +
+      `<span class="h-color">○`.repeat(h.colorOnly) +
+      `<span class="h-wrong">·`.repeat(SLOTS - h.exact - h.colorOnly);
+    div.appendChild(result);
+
+    if (h.isAuto) {
+      const tag = document.createElement('span');
+      tag.className = 'h-ai-tag';
+      tag.textContent = '🤖';
+      div.appendChild(tag);
+    }
+
+    historyEl.appendChild(div);
+  }
+}
+
+// ─── AI 自动推理 ───────────────────────────────────────
+
+$('btnAuto').addEventListener('click', () => {
+  if (autoRunning) {
+    stopAuto();
+    return;
+  }
+  if (state.solved) {
+    init();
+    setTimeout(() => startAuto(), 300);
+    return;
+  }
+  startAuto();
+});
+
+function startAuto() {
+  if (state.solved) {
+    setMessage('✅ 已通关，点击新游戏再开一局', 'info');
+    return;
+  }
+  autoRunning = true;
+  $('btnAuto').textContent = '⏸ 暂停';
+  $('btnAuto').className = 'btn-ai running';
+  $('speedControl').style.display = 'flex';
+  clearReasoning();
+  scheduleNext();
+}
+
+function stopAuto() {
+  autoRunning = false;
+  if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+  $('btnAuto').textContent = '🤖 AI 自动推理';
+  $('btnAuto').className = 'btn-ai';
+}
+
+function scheduleNext() {
+  if (!autoRunning || state.solved) return;
+  if (state.currentGuess.length > 0) state.currentGuess = [];
+
+  const speed = parseInt($('speedSlider').value);
+  autoTimer = setTimeout(() => autoStep(), speed);
+}
+
+function autoStep() {
+  if (!autoRunning) return;
+
+  // 第一步：AI 推理
+  const reason = aiReason();
+  if (reason.remaining === 0) {
+    showReasoning(reason, []);
+    setMessage('⚠️ 矛盾！没有符合条件的组合，推理有误', 'hint');
+    stopAuto();
+    return;
+  }
+
+  // 选一个猜测
+  let guess;
+  if (reason.remaining === 1) {
+    guess = reason.all[0];
+  } else {
+    // 策略：选一个包含最多不确定颜色的候选
+    // 简单策略：选第一个
+    guess = reason.all[0];
+  }
+
+  // 第二步：展示推理
+  showReasoning({ ...reason, step: state.attempts + 1 }, guess);
+
+  // 第三步：填充槽位（视觉反馈）
+  state.currentGuess = [...guess];
+  renderSlots();
+
+  // 第四步：延迟后正式猜测
+  const speed = parseInt($('speedSlider').value);
+  autoTimer = setTimeout(() => {
+    if (!autoRunning) return;
+    // 正式猜测
+    makeGuess([...guess], true);
+    // 继续下一轮
+    scheduleNext();
+  }, Math.min(speed, 800));
+}
+
+// ─── 启动 ──────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

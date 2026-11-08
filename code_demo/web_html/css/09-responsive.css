@@ -1,0 +1,57 @@
+/* 09-responsive.css — 所有 @media 响应式规则 */
+/* ── 响应式 ── */
+@media (max-width: 600px) {
+    #app-wrapper {
+        max-width: 100%;
+    }
+
+    #app {
+        border-radius: 0;
+    }
+
+    .header {
+        padding: 10px 14px;
+    }
+
+    .header h1 {
+        font-size: 16px;
+    }
+
+    .messages {
+        padding: 12px;
+    }
+
+    .message {
+        max-width: 90%;
+    }
+
+    .input-area {
+        padding: 10px 12px;
+    }
+
+    .icon-btn {
+        width: 38px;
+        height: 38px;
+    }
+
+    .send-btn {
+        width: 38px;
+        height: 38px;
+    }
+}
+/* ── 响应式 ── */
+@media (max-width: 600px) {
+    .sidebar {
+        width: 280px;
+    }
+
+    .session-name {
+        max-width: 120px;
+        font-size: 13px;
+    }
+
+    .settings-grid {
+        grid-template-columns: repeat(3, minmax(0, 160px));
+    }
+}
+

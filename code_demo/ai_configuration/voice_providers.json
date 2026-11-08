@@ -1,0 +1,7 @@
+{
+  "tts_providers": [],
+  "asr_providers": [],
+  "active_tts_provider_id": null,
+  "active_asr_provider_id": null,
+  "tts_fallback_to_local": false
+}

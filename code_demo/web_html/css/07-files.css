@@ -1,0 +1,279 @@
+/* 07-files.css — 待上传文件 + 上传按钮 + 文件预览弹窗 */
+/* ── 待上传文件 ── */
+.pending-files {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px;
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+.pending-files:empty {
+    display: none;
+    padding: 0;
+}
+.pending-files:not(:empty) {
+    padding: 8px 16px;
+}
+.pending-file {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 72px;
+    flex-shrink: 0;
+    cursor: pointer;
+    position: relative;
+}
+.pending-file-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    line-height: 1;
+    position: relative;
+    transition: 0.2s;
+}
+.pending-file-label {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+}
+.pending-file-icon.type-doc {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+.pending-file-icon.type-pdf {
+    background: #fce4ec;
+    color: #c62828;
+}
+.pending-file-icon.type-image {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+.pending-file-icon.type-code {
+    background: #f3e5f5;
+    color: #6a1b9a;
+}
+.pending-file-icon.type-text {
+    background: #f5f5f5;
+    color: #616161;
+}
+.pending-file-icon.type-default {
+    background: #eceff1;
+    color: #78909c;
+}
+.pending-file-name {
+    font-size: 11px;
+    color: var(--text-light);
+    max-width: 72px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+}
+.pending-file-remove {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(60, 60, 60, 0.7);
+    color: white;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 2;
+    border: none;
+    line-height: 1;
+    padding: 0;
+}
+.pending-file:hover .pending-file-remove {
+    opacity: 1;
+}
+
+/* 上传中状态 */
+.pending-file.uploading .pending-file-icon {
+    background: #e0e0e0 !important;
+    color: #9e9e9e !important;
+}
+.pending-file-spinner {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.pending-file-spinner::after {
+    content: '';
+    width: 24px;
+    height: 24px;
+    border: 3px solid #bdbdbd;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 上传错误 */
+.pending-file.error .pending-file-icon {
+    border: 2px solid var(--danger);
+}
+
+/* ── 上传按钮 ── */
+.upload-btn {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    padding: 0;
+}
+.upload-btn:hover {
+    background: var(--bg-lighter, #f0f0f0);
+}
+.upload-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--text-light);
+}
+.upload-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    right: 0;
+    background: var(--white);
+    color: var(--text);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+.upload-tooltip.visible {
+    opacity: 1;
+}
+
+/* ── 文件预览弹窗 ── */
+.file-preview-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 800;
+    align-items: center;
+    justify-content: center;
+}
+.file-preview-overlay.active {
+    display: flex;
+}
+.file-preview-modal {
+    background: var(--white);
+    border-radius: 12px;
+    width: 600px;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.2s ease;
+}
+.file-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--bg-dark);
+    flex-shrink: 0;
+}
+.file-preview-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.file-preview-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: var(--text-light);
+    padding: 0 4px;
+    line-height: 1;
+}
+.file-preview-close:hover {
+    color: var(--text);
+}
+.file-preview-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+.file-preview-body pre {
+    background: var(--bg-lighter, #f5f5f5);
+    padding: 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 50vh;
+    margin: 0;
+}
+.file-preview-body img {
+    max-width: 100%;
+    max-height: 60vh;
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+.file-preview-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    background: var(--bg-lighter, #f5f5f5);
+    border-radius: 8px;
+    font-size: 14px;
+}
+.file-preview-info-row {
+    display: flex;
+    gap: 8px;
+}
+.file-preview-info-label {
+    color: var(--text-light);
+    min-width: 60px;
+}
+

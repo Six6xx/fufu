@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🤖 AI 贪吃蛇</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0d1117; color: #c9d1d9;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh; display: flex; justify-content: center; align-items: center;
+  padding: 20px;
+}
+.wrap {
+  background: #161b22; border-radius: 16px; padding: 24px;
+  box-shadow: 0 0 60px rgba(88,166,255,0.08);
+  max-width: 500px; width: 100%;
+}
+h1 {
+  text-align: center; font-size: 20px; color: #58a6ff;
+  margin-bottom: 4px; letter-spacing: 1px;
+}
+.sub { text-align: center; color: #484f58; font-size: 12px; margin-bottom: 16px; }
+canvas {
+  display: block; margin: 0 auto; border-radius: 8px;
+  background: #0d1117; border: 1px solid #30363d;
+  width: 100%; max-width: 420px; aspect-ratio: 1;
+}
+.bar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 4px 0; font-size: 14px; color: #8b949e;
+}
+.bar .num { color: #58a6ff; font-weight: bold; font-size: 18px; }
+.bar .status { color: #f0883e; }
+.btn {
+  display: block; margin: 12px auto 0; padding: 8px 28px;
+  border-radius: 8px; border: none; font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s; background: #1f6feb; color: #fff;
+}
+.btn:hover { background: #388bfd; }
+.log {
+  margin-top: 12px; padding: 8px 12px; background: #0d1117;
+  border-radius: 8px; font-size: 11px; color: #484f58;
+  max-height: 60px; overflow-y: auto; font-family: monospace;
+  border: 1px solid #21262d;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🤖 AI 贪吃蛇</h1>
+  <p class="sub">蛇自动找食物 · 遇到障碍自动转弯</p>
+  <canvas id="c" width="420" height="420"></canvas>
+  <div class="bar">
+    <span>🍎 分数 <span class="num" id="score">0</span></span>
+    <span>🏆 最高 <span class="num" id="best">0</span></span>
+    <span class="status" id="status">▶ 运行中</span>
+  </div>
+  <button class="btn" id="restart">🔄 重新开始</button>
+  <div class="log" id="log">🤖 AI 启动...</div>
+</div>
+<script>
+const S = 20, N = 21; // 20x20 网格，21px 每格
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let snake, dir, food, score, best, alive, gameLoop, speed;
+const log = document.getElementById('log');
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const statusEl = document.getElementById('status');
+
+function logMsg(m) { log.textContent = `[${new Date().toLocaleTimeString()}] ${m}`; }
+
+function init() {
+  const cx = Math.floor(N/2), cy = Math.floor(N/2);
+  snake = [{x: cx, y: cy}, {x: cx-1, y: cy}, {x: cx-2, y: cy}];
+  dir = {x: 1, y: 0};
+  score = 0; alive = true; speed = 120;
+  best = parseInt(localStorage.getItem('aiSnakeBest') || '0');
+  bestEl.textContent = best;
+  scoreEl.textContent = 0;
+  statusEl.textContent = '▶ 运行中';
+  statusEl.style.color = '#3fb950';
+  spawnFood();
+  draw();
+  logMsg('🤖 AI 启动，开始找食物...');
+  clearInterval(gameLoop);
+  gameLoop = setInterval(tick, speed);
+}
+
+function spawnFood() {
+  let pos;
+  do {
+    pos = {x: Math.floor(Math.random() * N), y: Math.floor(Math.random() * N)};
+  } while (snake.some(s => s.x === pos.x && s.y === pos.y));
+  food = pos;
+}
+
+function draw() {
+  ctx.clearRect(0, 0, 420, 420);
+  // 网格
+  ctx.strokeStyle = '#1c2333';
+  ctx.lineWidth = 0.5;
+  for (let i = 0; i <= N; i++) {
+    ctx.beginPath(); ctx.moveTo(i*S, 0); ctx.lineTo(i*S, 420); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i*S); ctx.lineTo(420, i*S); ctx.stroke();
+  }
+  // 食物
+  ctx.fillStyle = '#f85149';
+  ctx.shadowColor = '#f85149'; ctx.shadowBlur = 10;
+  ctx.beginPath();
+  ctx.arc(food.x*S + S/2, food.y*S + S/2, S/2 - 2, 0, Math.PI*2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  // 蛇
+  snake.forEach((seg, i) => {
+    const t = i / snake.length;
+    const r = Math.floor(56 + t * 30);
+    const g = Math.floor(166 - t * 60);
+    const b = Math.floor(255 - t * 120);
+    ctx.fillStyle = i === 0 ? '#58a6ff' : `rgb(${r},${g},${b})`;
+    ctx.shadowColor = i === 0 ? '#58a6ff' : 'transparent';
+    ctx.shadowBlur = i === 0 ? 8 : 0;
+    const pad = 1, x = seg.x*S + pad, y = seg.y*S + pad;
+    const w = S - pad*2, h = S - pad*2, r2 = 3;
+    ctx.beginPath();
+    ctx.moveTo(x + r2, y);
+    ctx.lineTo(x + w - r2, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r2);
+    ctx.lineTo(x + w, y + h - r2);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r2, y + h);
+    ctx.lineTo(x + r2, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r2);
+    ctx.lineTo(x, y + r2);
+    ctx.quadraticCurveTo(x, y, x + r2, y);
+    ctx.closePath(); ctx.fill();
+  });
+  ctx.shadowBlur = 0;
+  // 蛇眼
+  if (snake.length > 0) {
+    const h = snake[0];
+    const cx = h.x*S + S/2, cy = h.y*S + S/2;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(cx + dir.x*4 - dir.y*3, cy + dir.y*4 + dir.x*3, 2.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + dir.x*4 + dir.y*3, cy + dir.y*4 - dir.x*3, 2.5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#0d1117';
+    ctx.beginPath();
+    ctx.arc(cx + dir.x*4 - dir.y*3, cy + dir.y*4 + dir.x*3, 1.2, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx + dir.x*4 + dir.y*3, cy + dir.y*4 - dir.x*3, 1.2, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+// ─── AI 决策 ───────────────────────────────────────────
+
+function aiDecide() {
+  const head = snake[0];
+  // 可用方向
+  const dirs = [
+    {x: 0, y: -1, label: '↑'},
+    {x: 1, y: 0,  label: '→'},
+    {x: 0, y: 1,  label: '↓'},
+    {x: -1, y: 0, label: '←'},
+  ];
+  // 不能反向
+  const safe = dirs.filter(d => !(d.x + dir.x === 0 && d.y + dir.y === 0));
+  // 去掉会撞墙或撞自己的
+  const valid = safe.filter(d => {
+    const nx = head.x + d.x, ny = head.y + d.y;
+    if (nx < 0 || nx >= N || ny < 0 || ny >= N) return false;
+    return !snake.some(s => s.x === nx && s.y === ny);
+  });
+
+  if (valid.length === 0) return dir; // 无路可走，保持原方向（会死）
+
+  // 优先朝食物方向走
+  const dx = food.x - head.x, dy = food.y - head.y;
+  // 按食物方向排序
+  valid.sort((a, b) => {
+    const da = Math.abs(dx - a.x) + Math.abs(dy - a.y);
+    const db = Math.abs(dx - b.x) + Math.abs(dy - b.y);
+    return da - db;
+  });
+
+  // 选第一个（最接近食物方向）
+  return valid[0];
+}
+
+function tick() {
+  if (!alive) return;
+  const newDir = aiDecide();
+  dir = newDir;
+  const head = {x: snake[0].x + dir.x, y: snake[0].y + dir.y};
+  // 撞墙
+  if (head.x < 0 || head.x >= N || head.y < 0 || head.y >= N) { die(); return; }
+  // 撞自己
+  if (snake.some(s => s.x === head.x && s.y === head.y)) { die(); return; }
+  snake.unshift(head);
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    scoreEl.textContent = score;
+    if (speed > 60) speed -= 1;
+    clearInterval(gameLoop);
+    gameLoop = setInterval(tick, speed);
+    spawnFood();
+    logMsg(`🍎 吃到食物！分数 ${score}，蛇长 ${snake.length}`);
+  } else {
+    snake.pop();
+  }
+  draw();
+}
+
+function die() {
+  alive = false;
+  clearInterval(gameLoop);
+  if (score > best) {
+    best = score;
+    localStorage.setItem('aiSnakeBest', best);
+    bestEl.textContent = best;
+    statusEl.textContent = `💀 新纪录：${score}`;
+    statusEl.style.color = '#d29922';
+    logMsg(`🏆 新纪录！分数 ${score}，蛇长 ${snake.length}`);
+  } else {
+    statusEl.textContent = `💀 结束，分数 ${score}`;
+    statusEl.style.color = '#f85149';
+    logMsg(`💀 游戏结束，分数 ${score}`);
+  }
+}
+
+document.getElementById('restart').addEventListener('click', init);
+init();
+</script>
+</body>
+</html>
